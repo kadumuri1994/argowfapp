@@ -1,0 +1,13 @@
+# argowf-template.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: my-wft
+spec:
+  templates:
+  - name: my-wft
+    script:
+      image: alpine
+      source: |
+        #!/bin/sh
+        echo "Hello from Argo Workflow Template!"
