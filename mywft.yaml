@@ -3,42 +3,49 @@ kind: WorkflowTemplate
 metadata:
   name: conditional-dag-workflow
 spec:
-  entrypoint: conditional-dag
+  entrypoint: main-dag
   templates:
-  - name: conditional-dag
+  - name: main-dag
     dag:
       tasks:
-      - name: condition-check
-        template: condition-check-template
-        arguments:
-          parameters:
-          - name: conditionParam
-            valueFrom:
-              configMapKeyRef:
-                name: the-map
-                key: enableExecution
-        withItems: [1]
+        - name: enable-execution-checks
+          template: conditional-check
+        - name: first-task
+          template: task1
+        - name: second-task
+          template: task2
+  
+  - name: conditional-check
+    template: condition-check-template
+    arguments:
+      parameters:
+      - name: conditionParam
+        valueFrom:
+          configMapKeyRef:
+            name: the-map
+            key: enableExecution
+    withItems: [1]
 
-      - name: task-1
-        template: echo-template
-        arguments:
-          parameters:
-          - name: message
-            value: "Task 1 executed"
+  - name: task1
+    template: echo-template
+    arguments:
+      parameters:
+      - name: message
+        value: "Task 1 executed"
 
-      - name: task-2
-        template: echo-template
-        arguments:
-          parameters:
-          - name: message
-            value: "Task 2 executed"
+  - name: task2
+    template: echo-template
+    arguments:
+      parameters:
+      - name: message
+        value: "Task 2 executed"
 
   - name: condition-check-template
     container:
       image: alpine
       command: [sh, -c]
       args: |
-        if [ '{{inputs.parameters.conditionParam}}' == 'true' ]; then 
+        if [ '{{inputs.parameters.conditionParam}}' == 'True' ]; then 
           echo "Condition succeeded"
         else
           echo "Condition failed"
