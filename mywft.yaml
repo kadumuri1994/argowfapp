@@ -10,7 +10,6 @@ spec:
       tasks:
       - name: condition-check
         template: condition-check-template
-        continueOn: Blocked
         arguments:
           parameters:
           - name: conditionParam
