@@ -1,13 +1,53 @@
-# argowf-template.yaml
 apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
+kind: Workflow
 metadata:
-  name: my-wft
+  generateName: conditional-dag-workflow-
 spec:
+  entrypoint: conditional-dag
   templates:
-  - name: my-wft
-    script:
+  - name: conditional-dag
+    dag:
+      tasks:
+      - name: condition-check
+        template: condition-check-template
+        continueOn: Failed
+        arguments:
+          parameters:
+          - name: conditionParam
+            valueFrom:
+              configMapKeyRef:
+                name: the-map
+                key: enableExecution
+
+      - name: task-1
+        template: echo-template
+        arguments:
+          parameters:
+          - name: message
+            value: "Task 1 executed"
+
+      - name: task-2
+        template: echo-template
+        arguments:
+          parameters:
+          - name: message
+            value: "Task 2 executed"
+
+  - name: condition-check-template
+    container:
       image: alpine
-      source: |
-        #!/bin/sh
-        echo "Hello from Argo Workflow Template!"
+      command: [sh, -c]
+      args: |
+        if [ '{{inputs.parameters.conditionParam}}' == 'true' ]; then 
+          echo "Condition succeeded"
+        else
+          echo "Condition failed"
+          kubectl patch wf {{workflow.name}} -n {{workflow.namespace}} --type='merge' -p '{"status":{"phase":"Blocked", "customStatus":"block"}}'
+          exit 1
+        fi
+
+  - name: echo-template
+    container:
+      image: alpine
+      command: [sh, -c]
+      args: ["echo '{{inputs.parameters.message}}'"]
