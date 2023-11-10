@@ -50,6 +50,7 @@ spec:
               echo "Condition succeeded"
             else
               echo "Condition Failed"
+              # kubectl patch wf {{workflow.name}} -n {{workflow.namespace}} --type='merge' -p '{"status":{"phase":"Blocked", "customStatus":"block"}}'
               exit 1
             fi
         env:
