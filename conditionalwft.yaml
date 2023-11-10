@@ -1,0 +1,70 @@
+metadata:
+  name: fantastic-octopus
+  namespace: kaddu
+  uid: 55d5f6ad-ddab-436d-8705-a5b3ccd12710
+  resourceVersion: '82008'
+  generation: 16
+  creationTimestamp: '2023-11-10T07:09:57Z'
+  labels:
+    example: 'true'
+    workflows.argoproj.io/creator: system-serviceaccount-argo-argo-server
+  managedFields:
+    - manager: argo
+      operation: Update
+      apiVersion: argoproj.io/v1alpha1
+      time: '2023-11-10T07:49:27Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:labels:
+            .: {}
+            f:example: {}
+            f:workflows.argoproj.io/creator: {}
+        f:spec: {}
+spec:
+  templates:
+    - name: main-dag
+      inputs: {}
+      outputs: {}
+      metadata: {}
+      dag:
+        tasks:
+          - name: check-condition
+            template: check-condition-template
+            arguments: {}
+    - name: check-condition-template
+      inputs: {}
+      outputs: {}
+      metadata: {}
+      container:
+        name: main
+        image: argoproj/argosay:v2
+        command:
+          - sh
+          - '-c'
+        args:
+          - |
+            echo "Environment Variables"
+            env
+            if $ENABLE_EXECUTION == "True" ; then 
+              echo "Condition succeeded"
+            else
+              echo "Condition Failed"
+              exit 1
+            fi
+        env:
+          - name: ENABLE_EXECUTION
+            valueFrom:
+              configMapKeyRef:
+                name: the-map
+                key: enableExecution
+        resources: {}
+  entrypoint: main-dag
+  arguments: {}
+  ttlStrategy:
+    secondsAfterCompletion: 300
+  podGC:
+    strategy: OnPodCompletion
+  workflowMetadata:
+    labels:
+      example: 'true'
