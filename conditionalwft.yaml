@@ -24,18 +24,13 @@ metadata:
 spec:
   templates:
     - name: main-dag
-      inputs: {}
-      outputs: {}
-      metadata: {}
       dag:
         tasks:
           - name: check-condition
             template: check-condition-template
-            arguments: {}
+          - name: actual-task
+            template: actual-task-template
     - name: check-condition-template
-      inputs: {}
-      outputs: {}
-      metadata: {}
       container:
         name: main
         image: argoproj/argosay:v2
@@ -60,6 +55,15 @@ spec:
                 name: the-map
                 key: enableExecution
         resources: {}
+    - name: actual-task-template
+      container:
+        name: main
+        image: argoproj/argosay:v2
+        command:
+          - sh
+          - '-c'
+        args:
+          echo "hello from actual task"
   entrypoint: main-dag
   arguments: {}
   ttlStrategy:
